@@ -8,13 +8,16 @@
 <body>
 	<div class="container">
 		<h1 class="text-center">Snakes and Ladders</h1>
-		<div class="col-md-12 mb-20" id="showPlayer">
+		<div class="row" id="showPlayer">
 		</div>
-		<h2 id="message" class="hide text-center"></h2>
+		<div class="row mb-10" id="messageContainer">
+			<h4 id="message" class="hide text-center"></h4>
+		</div>
 		<div class="row text-center">
-			<button id="rollDice" class="mb-20 btn btn-primary">Roll Dice</button>
+			<button id="rollDice" class="mb-10 btn btn-primary">Player 1's turn</button>
+			<button id="replay" class="mb-10 btn btn-primary hide">Replay</button>
 		</div>
-		<div class="row text-center mb-20" id="diceValueContainer">
+		<div class="row text-center mb-10" id="diceValueContainer">
 			<p id="diceValue"></p>
 		</div>
 		<table id="board" class="table">

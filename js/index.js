@@ -11,6 +11,7 @@ var Board = function(){
 	this.boardNumbers = [];
 	this.result = false;
 	this.whoHasWon = null;
+	var _stateOfUsers = [];
 	function initializeBoard(boardObject){
 		for(let i = 0; i < boardObject.rows; i++){
 			boardObject.boardNumbers[i] = [];
@@ -152,6 +153,7 @@ var Board = function(){
 	show(this);
 	this.movePosition= function(userObject, dice){
 		let self = this;
+		
 		//get the new position value by adding dice value to old position value
 		let position = this.boardNumbers[userObject.row][userObject.column] + dice;
 		//get the new row value
@@ -165,7 +167,8 @@ var Board = function(){
 			column = this.columns - 1;
 		}
 		if(row >= this.rows){
-			$("#message").text(`can't move, try next time user ${userObject.id}`).removeClass("hide");
+			let message = `can't move, try next time user ${userObject.id}`;
+			$("#message").text(message).removeClass("hide");
 		} else {
 			//if there is ladder or snake in the new position
 			let supposedValue = (row * this.colums) + (column + 1);
@@ -179,11 +182,10 @@ var Board = function(){
 					column = (value % this.columns) - 1;
 				}
 			}
-			changeTableCellColor(this.rows, this.columns, userObject.row, userObject.column, "#7E7474")
+			changeTableCellColor(this.rows, this.columns, userObject.row, userObject.column, "#7E7474");
 			userObject.row = row;
 			userObject.column = column;
 
-			//changeTableCellColor(this.rows, this.columns, row, column, userObject.color);
 			// user has won the game
 			if(row == (this.rows-1) && column == (this.columns-1)) {
 				this.result = true;
@@ -192,6 +194,59 @@ var Board = function(){
 			}
 		}
 	}
+
+	this.setStateOfUsers = function(usersArray, currentUserIndex, currentDiceValue){
+		let arr = [];
+		
+		for(let index in userArray){
+			let obj = {};
+			obj["id"] = userArray[index].id;
+			obj["row"] = userArray[index].row;
+			obj["column"] = userArray[index].column;
+			obj["color"] = userArray[index].color;
+			if(index == currentUserIndex){
+				obj["dirty"] = true;
+				obj["diceValue"] = currentDiceValue;
+			}
+			arr.push(obj);
+		}
+		_stateOfUsers.push(arr)
+		console.log(_stateOfUsers)
+	}
+
+	this.replay = function(){
+		for(let index in _stateOfUsers){
+			(function(index, boardObject){
+				setTimeout(() => {
+					if(index == 0) {
+						for(let userStateObject of _stateOfUsers[index]){
+							if(userStateObject["dirty"]) {
+								$("#diceValue").text(`Player ${userStateObject["id"]} got ${userStateObject.diceValue}`).show();
+							}
+							changeTableCellColor(boardObject.rows, boardObject.columns, userStateObject.row, userStateObject.column, userStateObject.color);
+						}
+					} else {
+						// for removing the user's previous position
+						for(let userStateObject of _stateOfUsers[index - 1]){
+							changeTableCellColor(boardObject.rows, boardObject.columns, userStateObject.row, userStateObject.column, "#7E7474");
+						}
+
+						//setting the user's position
+						for(let userStateObject of _stateOfUsers[index]){
+							if(userStateObject["dirty"]) {
+								$("#diceValue").text(`Player ${userStateObject["id"]} got ${userStateObject.diceValue}`).show();
+							}
+							if(index == (_stateOfUsers.length-1)) {
+								$("#message").text(`Player ${userStateObject["id"]} won the game`).removeClass("hide");
+							}
+							changeTableCellColor(boardObject.rows, boardObject.columns, userStateObject.row, userStateObject.column, userStateObject.color);
+						}
+					}
+				}, index * 1000);
+			})(index, this);
+		}
+	}
+
 }
 
 var User = function(){
@@ -206,12 +261,13 @@ User.prototype.rollDice = function(callback){
 	let dice = randomNumber(1, 6);
 	$("#diceValue").text(`Player ${this.id} got ${dice}`).show();
 	board.movePosition(this, dice);
-	callback();
+	callback(dice);
 }
 
 var board = new Board();
 var user1 = new User();
 var user2 = new User();
+var user3 = new User();
 var userArray = [user1, user2];
 
 //set the color of cell in the beginning
@@ -221,23 +277,60 @@ for(let user of userArray){
 }
 
 //set the button's value
-$("#rollDice").text("Player 1's turn");
+//$("#rollDice").text("");
 
 $("#rollDice").on("click", function(){
 	$("#message").addClass("hide");
-	userArray[currentUser - 1].rollDice(function(){
+	userArray[currentUser - 1].rollDice(function(diceValue){
 		for(let user of userArray){
 			changeTableCellColor(board.rows, board.columns, user.row, user.column, user.color);
 		}
+
+		//set the stateofboard
+		board.setStateOfUsers(userArray, currentUser-1, diceValue);
+
 		if(board.result){
 			$("#message").text(`Player ${board.whoHasWon.id} won the game`).removeClass("hide");
 			$("#rollDice").hide();
+			$("#replay").removeClass("hide");
 		} else {
 			currentUser = (currentUser % userArray.length) + 1;
 			let textOnButton = `Player ${currentUser}'s turn`;
 			$("#rollDice").text(textOnButton);
 		}
 	});
+});
+
+$("#replay").on("click", function(){
+	$("#message").addClass("hide");
+	$("#diceValue").hide();
+
+	//for removing the existing user position and setting all the user position to 0,0
+	for(let user of userArray){
+		changeTableCellColor(board.rows, board.columns, user.row, user.column, "#7E7474");
+		changeTableCellColor(board.rows, board.columns, 0, 0, user.color);
+	}
+	// //loop through each move and show it on board
+
+	board.replay();
+	// for(let index in board.replay){
+	// 	(function(index){
+	// 		setTimeout(() => {
+	// 			$("#diceValue").text(`Player ${board.replay[index]["id"]} got ${board.replay[index]["diceValue"]}`).show();
+	// 			if(index == 0){
+	// 				changeTableCellColor(board.rows, board.columns, board.replay[index]["row"], board.replay[index]["column"], board.replay[index]["color"]);
+	// 			} else {
+	// 				if(board.replay[index]["message"] == undefined){
+	// 					$("#message").addClass("hide");
+	// 					changeTableCellColor(board.rows, board.columns, board.replay[index]["row"], board.replay[index]["column"], board.replay[index]["color"]);
+	// 					changeTableCellColor(board.rows, board.columns, board.replay[index-1]["row"], board.replay[index-1]["column"], board.replay[index-1]["color"]);
+	// 				} else {
+	// 					$("#message").text(board.replay[index]["message"]).removeClass("hide");
+	// 				}
+	// 			}
+	// 		}, index * 1000);
+	// 	})(index);
+	// }
 })
 
 function randomNumber(min, max){
