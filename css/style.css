@@ -5,7 +5,8 @@ h6 { text-align: center; }
 .snake { background: url("../images/snake.png"); background-size: 100% 100%; }
 .ladder { background: url("../images/ladder.jpg"); color: black !important; background-size: 100% 100%; }
 .mb-10 { margin-bottom: 10px; }
-.icon-20 { display: inline-block; height: 20px; width: 20px; }
+.square-20 { display: inline-block; height: 20px; width: 20px; }
+.square-60 { display: inline-block; height: 60px; width: 60px; background: green;}
 .vertical-align { vertical-align: middle; }
 #messageContainer { min-height: 40px; }
 #rollDice, #replay { width: 300px; }
