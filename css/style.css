@@ -1,0 +1,28 @@
+ table { background: #7E7474; }
+ table th, table td { overflow: hidden; }
+.table td {
+    border: 1px solid #ddd;
+    text-align: center;
+    height: 45px;
+    width: 45px;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+h6{ text-align: center; }
+.mb-20{margin-bottom: 20px;}
+.icon-20{ display: inline-block; height: 20px; width: 20px; }
+.vertical-align {vertical-align: middle;}
+#rollDice{width: 300px;}
+#diceValueContainer{ min-height: 40px; }
+.snake {
+    background: url("../images/snake.png");
+    background-size: 100% 100%;
+}
+
+.ladder {
+    background: url("../images/ladder.jpg");
+    color: black !important;
+    background-size: 100% 100%;
+}
