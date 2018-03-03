@@ -22,67 +22,50 @@ var Board = function(){
 	function initializeSnakes(boardObject){
 		let maxForStart = (boardObject.rows * boardObject.columns) - 1;
 		let minForStart = boardObject.columns + 1;
-		for(let i = 0; i < 5; i++){
-			let snakePosition = {};
-			let start = randomNumber(minForStart, maxForStart);
-			while(true){
-				let arr = boardObject.snakes.filter((item) => (item["start"] == start || item["end"] == start));
-				if(arr.length == 0){
-					break;
-				} else {
-					start = randomNumber(minForStart, maxForStart);
-				}
-			}
-			let maxForEnd = start - (start % boardObject.columns);
-			if(start % boardObject.columns == 0){
-				maxForEnd = maxForEnd - 8;
-			}
-			let end = randomNumber(1, maxForEnd);
-			while(true){
-				let arr = boardObject.snakes.filter((item) => (item["start"] == end || item["end"] == end));
-				if(end != start && arr.length == 0){
-					break;
-				} else {
-					end = randomNumber(1, maxForEnd);
-				}
-			}
-			boardObject.boardNumbers[start] = end;
-			snakePosition["start"] = start;
-			snakePosition["end"] = end;
-			boardObject.snakes.push(snakePosition);
-		}
+		let minForEnd = 1;
+		initializeObjects(boardObject, minForStart, maxForStart, minForEnd, 0, boardObject.snakes, boardObject.ladders, "snake");
 	}
 
 	function initializeLadders(boardObject){
 		let maxForStart = (boardObject.rows * boardObject.columns) - boardObject.columns - 1;
 		let minForStart = 2;
+		let maxForEnd = boardObject.columns * boardObject.rows;
+		initializeObjects(boardObject, minForStart, maxForStart, 0, maxForEnd, boardObject.ladders, boardObject.snakes, "ladder");
+	}
+
+	function initializeObjects(boardObject, minForStart, maxForStart, minForEnd, maxForEnd, object1, object2, name){
 		for(let i = 0; i < 5; i++){
-			let ladderPosition = {};
+			let position = {};
 			let start = randomNumber(minForStart, maxForStart);
+			let end;
 			while(true){
-				let arr = boardObject.ladders.filter((item) => (item["start"] == start || item["end"] == start));
-				let posPresentInSnake = boardObject.snakes.filter((item) => (item["start"] == start || item["end"] == start));
-				if(arr.length == 0 && posPresentInSnake.length == 0){
+				let arr = object1.filter((item) => (item["start"] == start || item["end"] == start));
+				let isOtherObjectPresent = object2.filter((item) => (item["start"] == start || item["end"] == start));
+				if(arr.length == 0 && isOtherObjectPresent.length == 0){
 					break;
 				} else {
 					start = randomNumber(minForStart, maxForStart);
 				}
 			}
-			let minForEnd = start + (boardObject.columns - (start % boardObject.columns)) + 1;
-			let end = randomNumber(minForEnd, boardObject.columns * boardObject.rows);
+			if(name == "snake"){
+				maxForEnd = start - (start % boardObject.columns);
+			} else {
+				minForEnd = start + (boardObject.columns - (start % boardObject.columns)) + 1;
+			}
+			end = randomNumber(minForEnd, maxForEnd);
 			while(true){
-				let arr = boardObject.ladders.filter((item) => (item["start"] == end || item["end"] == end));
-				let posPresentInSnake = boardObject.snakes.filter((item) => (item["start"] == end || item["end"] == end));
-				if(end != start && arr.length == 0 && posPresentInSnake.length == 0){
+				let arr = object1.filter((item) => (item["start"] == end || item["end"] == end));
+				let isOtherObjectPresent = object2.filter((item) => (item["start"] == end || item["end"] == end));
+				if(end != start && arr.length == 0 && isOtherObjectPresent.length == 0){
 					break;
 				} else {
-					end =  randomNumber(minForEnd, boardObject.columns * boardObject.rows);
+					end =  randomNumber(minForEnd, maxForEnd);
 				}
 			}
 			boardObject.boardNumbers[start] = end;
-			ladderPosition["start"] = start;
-			ladderPosition["end"] = end;
-			boardObject.ladders.push(ladderPosition);
+			position["start"] = start;
+			position["end"] = end;
+			object1.push(position);
 		}
 	}
 
@@ -267,16 +250,18 @@ $("#replay").on("click", function(){
 	for(let user of userArray){
 		allUserColors[user.id] = user.color;
 	}
-	setHomeColor();
 	//for removing the existing user position and setting all the user position to 0,0
 	for(let user of userArray){
 		changeTableCellColor(board.rows, board.columns, user.position, "#7E7474");
 	}
-	board.replay();
+	setHomeColor();	
+	setTimeout(function(){
+		board.replay();
+	}, 1000)
 })
 
 function randomNumber(min, max){
-	return Math.floor(Math.random() * ( max - min)) + min;
+	return Math.floor(Math.random() * ( max + 1 - min)) + min;
 }
 
 function getRandomColor() {
